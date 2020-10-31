@@ -58,6 +58,18 @@ constexpr auto operator+(const vec<A, M>& a, const vec<B, M>& b) -> vec<decltype
 {
   return zip([](A a_m, B b_m){ return a_m + b_m; }, a, b);
 }
+
+template<typename A, typename B, std::size_t M>
+constexpr auto operator-(const vec<A, M>& a, const vec<B, M>& b) -> vec<decltype(A{} + B{}), M>
+{
+  return zip([](A a_m, B b_m){ return a_m - b_m; }, a, b);
+}
+
+template<typename A, typename B, std::size_t M>
+constexpr auto operator*(const vec<A, M>& a, B b) -> vec<decltype(A{} * B{}), M>
+{
+  return fmap([b](A a_m){ return a_m * b; }, a);
+}
 } // namespace mlp
 
 /*
@@ -106,6 +118,12 @@ constexpr auto operator+(const mat<A, M, N>& a, const mat<B, M, N>& b) -> mat<de
   return zip([](A a_m, B b_m){ return a_m + b_m; }, a, b);
 }
 
+template<typename A, typename B, std::size_t M, std::size_t N>
+constexpr auto operator-(const mat<A, M, N>& a, const mat<B, M, N>& b) -> mat<decltype(A{} + B{}), M, N>
+{
+  return zip([](A a_m, B b_m){ return a_m - b_m; }, a, b);
+}
+
 template<typename A, typename B, std::size_t M, std::size_t N, std::size_t P>
 constexpr auto operator*(const mat<A, M, N>& a, const mat<B, N, P>& b) -> mat<decltype(A{} * B{}), M, P>
 {
@@ -115,6 +133,12 @@ constexpr auto operator*(const mat<A, M, N>& a, const mat<B, N, P>& b) -> mat<de
       for (std::size_t j = 0; j < N; ++j)
         c[i][p] = c[i][p] + a[i][j] * b[j][p];
   return c;
+}
+
+template<typename A, typename B, std::size_t M, std::size_t N>
+constexpr auto operator*(const mat<A, M, N>& a, B b) -> mat<decltype(A{} * B{}), M, N>
+{
+  return fmap([b](A a_m){ return a_m * b; }, a);
 }
 } // namespace mlp
 
@@ -153,15 +177,30 @@ constexpr auto operator+(const vec<B, M>& a, const mat<A, M, 1>& b) -> vec<declt
 }
 
 template<typename A, typename B, std::size_t M>
+constexpr auto operator-(const vec<B, M>& a, const mat<A, M, 1>& b) -> vec<decltype(A{} + B{}), M>
+{
+  auto c = vec<decltype(A{} + B{}), M>{};
+  for (std::size_t i = 0; i < M; ++i)
+    c[i] = a[i] - b[i][0];
+  return c;
+}
+
+template<typename A, typename B, std::size_t M>
 constexpr auto operator+(const mat<A, M, 1>& a, const vec<B, M>& b) -> vec<decltype(A{} + B{}), M>
 {
   return b + a;
 }
 
+template<typename A, typename B, std::size_t M>
+constexpr auto operator-(const mat<A, M, 1>& a, const vec<B, M>& b) -> vec<decltype(A{} + B{}), M>
+{
+  return b - a;
+}
+
 template<typename T, std::size_t M>
 constexpr auto transpose(const vec<T, M>& v) -> mat<T, 1, M>
 {
-  return {v};
+  return {{v}};
 }
 
 template<typename T, std::size_t M, std::size_t N>
