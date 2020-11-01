@@ -25,6 +25,7 @@ constexpr auto fmap(F&& f, const vec<A, M>& a) -> vec<std::invoke_result_t<F, A>
     b[i] = f(a[i]);
   return b;
 }
+
 template<typename F, typename A, typename B, std::size_t M>
 constexpr auto zip(F&& f, const vec<A, M>& a, const vec<B, M>& b) -> vec<std::invoke_result_t<F, A, B>, M>
 {
@@ -33,6 +34,7 @@ constexpr auto zip(F&& f, const vec<A, M>& a, const vec<B, M>& b) -> vec<std::in
     c[i] = f(a[i], b[i]);
   return c;
 }
+
 template<typename F, typename A, typename B, std::size_t M>
 constexpr auto fold(F&& f, const A& z, const vec<B, M>& x) -> std::conditional_t<M == 0, A, std::invoke_result_t<F, A, B>>
 {
