@@ -160,7 +160,7 @@ constexpr auto operator*(const mat<A, M, N>& a, const vec<B, N>& b) -> vec<declt
 }
 
 template<typename A, typename B, std::size_t M, std::size_t N>
-constexpr auto operator*(const vec<B, M>& a, const mat<A, 1, N>& b) -> mat<decltype(A{} * B{}), M, N>
+constexpr auto operator*(const vec<A, M>& a, const mat<B, 1, N>& b) -> mat<decltype(A{} * B{}), M, N>
 {
   auto c = mat<decltype(A{} * B{}), M, N>{};
   for (std::size_t i = 0; i < M; ++i)
@@ -170,7 +170,7 @@ constexpr auto operator*(const vec<B, M>& a, const mat<A, 1, N>& b) -> mat<declt
 }
 
 template<typename A, typename B, std::size_t M>
-constexpr auto operator+(const vec<B, M>& a, const mat<A, M, 1>& b) -> vec<decltype(A{} + B{}), M>
+constexpr auto operator+(const vec<A, M>& a, const mat<B, M, 1>& b) -> vec<decltype(A{} + B{}), M>
 {
   auto c = vec<decltype(A{} + B{}), M>{};
   for (std::size_t i = 0; i < M; ++i)
@@ -179,7 +179,7 @@ constexpr auto operator+(const vec<B, M>& a, const mat<A, M, 1>& b) -> vec<declt
 }
 
 template<typename A, typename B, std::size_t M>
-constexpr auto operator-(const vec<B, M>& a, const mat<A, M, 1>& b) -> vec<decltype(A{} + B{}), M>
+constexpr auto operator-(const vec<A, M>& a, const mat<B, M, 1>& b) -> vec<decltype(A{} + B{}), M>
 {
   auto c = vec<decltype(A{} + B{}), M>{};
   for (std::size_t i = 0; i < M; ++i)
@@ -206,17 +206,12 @@ constexpr auto transpose(const vec<T, M>& v) -> mat<T, 1, M>
 }
 
 template<typename T, std::size_t M, std::size_t N>
-constexpr auto transpose(const mat<T, M, N>& a) -> std::conditional_t<M == 1, vec<T, N>, mat<T, N, M>>
+constexpr auto transpose(const mat<T, M, N>& a) -> mat<T, N, M>
 {
-  if constexpr (M == 1)
-    return a[0];
-  else
-  {
-    auto a_t = mat<T, N, M>{};
-    for (std::size_t i = 0; i < M; ++i)
-      for (std::size_t j = 0; j < N; ++j)
-        a_t[j][i] = a[i][j];
-    return a_t;
-  }
+  auto a_t = mat<T, N, M>{};
+  for (std::size_t i = 0; i < M; ++i)
+    for (std::size_t j = 0; j < N; ++j)
+      a_t[j][i] = a[i][j];
+  return a_t;
 }
 } // namespace mlp
