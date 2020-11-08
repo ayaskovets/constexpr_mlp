@@ -82,3 +82,50 @@ constexpr auto operator>>(const mat<double, N, I>& x, const mlp<layer<I, O>, Ls.
   return std::apply([&x](const auto&... ls){ return (x >> ... >> ls); }, net);
 }
 } // namespace mlp
+
+/*
+ * mlp training
+ */
+namespace mlp
+{
+struct fitparms
+{
+  std::size_t epochs;
+  double rate;
+  lossf loss;
+};
+
+template<std::size_t L = 0, std::size_t I, std::size_t O, typename... Ls>
+constexpr auto backpropagate(mlp<Ls...>& net, const fitparms& par, const vec<double, I>& x, const vec<double, O>& y)
+{
+  static_assert(L < sizeof...(Ls));
+
+  auto& l = std::get<L>(net);
+  const auto z = l.w * x + l.b;
+  const auto a = activation(l.a, z);
+
+  auto delta = derivative(l.a, z);
+  if constexpr (L == sizeof...(Ls) - 1)
+    delta = zip(std::multiplies{}, delta, derivative(par.loss, y, a));
+  else
+  {
+    const auto w_next = transpose(std::get<L + 1>(net).w);
+    delta = zip(std::multiplies{}, delta, w_next * backpropagate<L + 1>(net, par, a, y));
+  }
+
+  l.w = l.w - delta * transpose(x) * par.rate;
+  l.b = l.b - delta * par.rate;
+
+  return delta;
+}
+
+template<std::size_t N, std::size_t I, std::size_t O, typename... Ls>
+constexpr auto fit(const mlp<Ls...>& net, const fitparms& par, const mat<double, N, I>& x, const mat<double, N, O>& y) -> mlp<Ls...>
+{
+  auto fnet = net;
+  for (std::size_t epoch = 1; epoch <= par.epochs; ++epoch)
+    for (std::size_t n = 0; n < N; ++n)
+      backpropagate(fnet, par, x[n], y[n]);
+  return fnet;
+}
+} // namespace mlp
